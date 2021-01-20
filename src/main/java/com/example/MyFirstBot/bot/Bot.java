@@ -39,7 +39,7 @@ public class Bot extends TelegramLongPollingBot {
                         sendMsg(msg, "Hello! This is my first bot. \nChoose from menu:");
                         break;
                     case "Divide into paragraphs":
-                        sendMsg(msg, "Write your text below, the first line of your message will be displayed unchanged: :");
+                        sendMsg(msg, "Write your text:");
                         prevCommand = "Divide";
                         break;
                     case "Italic":
@@ -111,8 +111,7 @@ public class Bot extends TelegramLongPollingBot {
     private void aboutBot() {
         printMsg(newMsg, "This bot was created in order to make it easier for users to format text.\n" +
                 "This bot can:\n" +
-                "Divide entered text into paragraphs, иut with some remark. The first line of your message, " +
-                "due to the peculiarity of Telegram, will be displayed unchanged. \n" +
+                "Divide entered text into paragraphs; \n" +
                 "Apply different effects to text, such as italic, bold, etc.");
     }
 
@@ -125,7 +124,9 @@ public class Bot extends TelegramLongPollingBot {
     }
 
     private void divideTextIntoParagraphs(String text) {
-        printMsg(newMsg, text.replace("\n", "\r\n     "));
+        StringBuilder newText = new StringBuilder();
+        newText.append(text).insert(0, "Your message with paragraphs: \n");
+        printMsg(newMsg, newText.toString().replace("\n", "\r\n     "));
     }
 
     //метод для отправки сообщения ботом
