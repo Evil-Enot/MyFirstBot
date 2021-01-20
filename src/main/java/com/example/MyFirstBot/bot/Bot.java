@@ -25,6 +25,10 @@ public class Bot extends TelegramLongPollingBot {
     private SendMessage newMsg = new SendMessage();
     private String prevCommand = "";
 
+    private boolean waitingForAnAnswer = false;
+    private String answer = "";
+    private Questions questions = new Questions();
+
     @Override
     public void onUpdateReceived(Update update) {
         Message msg = update.getMessage();
@@ -32,7 +36,8 @@ public class Bot extends TelegramLongPollingBot {
         //Если в msg содержится текст, то выбираем что дальше делать
         if (msg != null && msg.hasText()) {
             String text = msg.getText();
-            if (prevCommand.isEmpty()) {
+
+            if (prevCommand.isEmpty() && !waitingForAnAnswer) {
                 switch (text) {
                     case "/start":
                         createKeyboard();
@@ -53,27 +58,56 @@ public class Bot extends TelegramLongPollingBot {
                     case "About bot":
                         aboutBot();
                         break;
+                    case "Get riddle":
+                        waitingForAnAnswer = true;
+                        questions.getQuestion();
+                        answer = questions.getAnswer();
+                        sendMsg(msg, questions.getNewQuestion());
+                        break;
+                    case "Stop riddle":
+                        waitingForAnAnswer = false;
+                        sendMsg(msg, "You didn't get riddle");
+                        break;
                     default:
                         sendMsg(msg, "You write: " + text);
                         break;
                 }
             } else {
-                switch (prevCommand){
-                    case "Divide":
-                        divideTextIntoParagraphs(text);
-                        break;
-                    case "Italic":
-                        italicText(text);
-                        break;
-                    case "Bold":
-                        boldText(text);
-                        break;
+                // Ветка, если пользователь хочет модифицировать текст
+                if (!prevCommand.isEmpty()) {
+                    switch (prevCommand){
+                        case "Divide":
+                            divideTextIntoParagraphs(text);
+                            break;
+                        case "Italic":
+                            italicText(text);
+                            break;
+                        case "Bold":
+                            boldText(text);
+                            break;
+                    }
+
+                    prevCommand = "";
                 }
-                prevCommand = "";
+                // Если отгадывает загадку
+                else {
+                    if (text.equals("Stop riddle")) {
+                        waitingForAnAnswer = false;
+                        sendMsg(msg, "You stop riddle");
+                    } else if (text.equals("Get riddle")) {
+                        sendMsg(msg, "You already have a riddle");
+                    } else {
+                        if (answer.equals(text.trim().toLowerCase())) {
+                            sendMsg(msg, "You're right!!! Congratulations!!!");
+                            waitingForAnAnswer = false;
+                        } else sendMsg(msg, "Not correct, try again :с");
+                    }
+                }
             }
         }
     }
 
+    //метод для создания пользовательского меню
     private void createKeyboard() {
         newMsg.enableMarkdown(true);
 
@@ -99,9 +133,16 @@ public class Bot extends TelegramLongPollingBot {
         keyboardFirstRow2.add("Bold");
         keyboardFirstRow2.add("About bot");
 
+        // Третья строчка клавиатуры
+        KeyboardRow keyboardFirstRow3 = new KeyboardRow();
+        // Добавляем кнопки в третью строчку клавиатуры
+        keyboardFirstRow3.add("Get riddle");
+        keyboardFirstRow3.add("Stop riddle");
+
         // Добавляем все строчки клавиатуры в список
         keyboard.add(keyboardFirstRow1);
         keyboard.add(keyboardFirstRow2);
+        keyboard.add(keyboardFirstRow3);
 
         // Устанваливаем этот список нашей клавиатуре
         replyKeyboardMarkup.setKeyboard(keyboard);
@@ -115,21 +156,24 @@ public class Bot extends TelegramLongPollingBot {
                 "Apply different effects to text, such as italic, bold, etc.");
     }
 
+    //метод для преобразования текста в полужирный
     private void boldText(String text) {
         printMsg(newMsg, "*" + text + "*");
     }
 
+    //метод для преобразования текста в курсивный
     private void italicText(String text) {
         printMsg(newMsg, "_" + text + "_");
     }
 
+    //метод для преобразования текста с абзацами
     private void divideTextIntoParagraphs(String text) {
         StringBuilder newText = new StringBuilder();
         newText.append(text).insert(0, "Your message with paragraphs: \n");
         printMsg(newMsg, newText.toString().replace("\n", "\r\n     "));
     }
 
-    //метод для отправки сообщения ботом
+    //метод для определения ChatId
     private void sendMsg(Message msg, String text) {
         newMsg.setChatId(msg.getChatId());
         printMsg(newMsg, text);
@@ -137,8 +181,8 @@ public class Bot extends TelegramLongPollingBot {
 
     //метод для отправки сообщения
     private void printMsg(SendMessage msg, String text) {
-        newMsg.enableMarkdown(true);
-        newMsg.setText(text);
+        msg.enableMarkdown(true);
+        msg.setText(text);
         try {
             execute(msg);
         } catch (TelegramApiException e) {
