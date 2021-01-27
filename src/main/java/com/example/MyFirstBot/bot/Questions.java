@@ -1,6 +1,9 @@
 package com.example.MyFirstBot.bot;
 
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Properties;
 import java.util.Random;
 
 public class Questions {
@@ -8,6 +11,7 @@ public class Questions {
     private String newQuestion;
     private String answer;
     private ArrayList<Integer> pool = new ArrayList<Integer>();
+    private Properties prop = new Properties();
 
     public void getQuestion() {
         Random random = new Random();
@@ -24,32 +28,37 @@ public class Questions {
     }
 
     private void questions(int number) {
-        switch (number) {
-            case 0:
-                newQuestion = "Вы заходите в тёмную кухню. В ней есть свеча, керосиновая лампа и газовая плита. Что вы зажжёте в первую очередь?";
-                answer = "спичку";
-                break;
-            case 1:
-                newQuestion = "Если пять кошек ловят пять мышей за пять минут, то сколько времени нужно одной кошке, чтобы поймать одну мышку? Напишите цифру:";
-                answer = "5";
-                break;
-            case 2:
-                newQuestion = "Полтора судака стоят полтора рубля. Сколько стоят 13 судаков? Напишите цифру:";
-                answer = "13";
-                break;
-            case 3:
-                newQuestion = "Как известно, все русские женские имена оканчиваются либо на букву «а», либо на букву «я»: " +
-                        "Анна, Мария, Ирина, Наталья, Ольга и т.д. Однако есть одно-единственное женское имя, которое  оканчивается на другую букву. Назовите его.";
-                answer = "любовь";
-                break;
-            case 4:
-                newQuestion = "На столе лежат две монеты, в сумме они дают 3 рубля. Одна из них — не 1 рубль. Какие это монеты? Напишите цифры через пробел";
-                answer = "1 2";
-                break;
-            case 5:
-                newQuestion = "На каком языке говорят молча?";
-                answer = "язык жестов";
-                break;
+        try {
+            FileInputStream fileInputStream = new FileInputStream("src/main/resources/questions.properties");
+            prop.load(fileInputStream);
+            switch (number) {
+                case 0:
+                    newQuestion = prop.getProperty("1.question");
+                    answer = prop.getProperty("1.answer");
+                    break;
+                case 1:
+                    newQuestion = prop.getProperty("2.question");
+                    answer = prop.getProperty("2.answer");
+                    break;
+                case 2:
+                    newQuestion = prop.getProperty("3.question");
+                    answer = prop.getProperty("3.answer");
+                    break;
+                case 3:
+                    newQuestion = prop.getProperty("4.question");
+                    answer = prop.getProperty("4.answer");
+                    break;
+                case 4:
+                    newQuestion = prop.getProperty("5.question");
+                    answer = prop.getProperty("5.answer");
+                    break;
+                case 5:
+                    newQuestion = prop.getProperty("6.question");
+                    answer = prop.getProperty("6.answer");
+                    break;
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 

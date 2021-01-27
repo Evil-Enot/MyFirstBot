@@ -6,12 +6,7 @@ import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
-
-import java.util.ArrayList;
-import java.util.List;
 
 @Component
 public class Bot extends TelegramLongPollingBot {
@@ -28,6 +23,7 @@ public class Bot extends TelegramLongPollingBot {
     private boolean waitingForAnAnswer = false;
     private String answer = "";
     private Questions questions = new Questions();
+    private Keyboard keyboard = new Keyboard();
 
     @Override
     public void onUpdateReceived(Update update) {
@@ -40,10 +36,25 @@ public class Bot extends TelegramLongPollingBot {
             if (prevCommand.isEmpty() && !waitingForAnAnswer) {
                 switch (text) {
                     case "/start":
-                        createKeyboard();
+                        keyboard.createKeyboard(newMsg, 0);
                         sendMsg(msg, "Hello! This is my first bot. \nChoose from menu:");
                         break;
-                    case "Divide into paragraphs":
+                    case "Text":
+                        keyboard.createKeyboard(newMsg, 1);
+                        sendMsg(msg, "Choose from the menu:");
+                        break;
+                    case "Riddles":
+                        keyboard.createKeyboard(newMsg, 2);
+                        sendMsg(msg, "Good luck");
+                        break;
+                    case "About":
+                        aboutBot();
+                        break;
+                    case "Return to main menu":
+                        keyboard.createKeyboard(newMsg, 0);
+                        sendMsg(msg, "You have returned to the main menu:");
+                        break;
+                    case "Divide text":
                         sendMsg(msg, "Write your text:");
                         prevCommand = "Divide";
                         break;
@@ -55,16 +66,13 @@ public class Bot extends TelegramLongPollingBot {
                         prevCommand = "Bold";
                         sendMsg(msg, "Write your text:");
                         break;
-                    case "About bot":
-                        aboutBot();
-                        break;
                     case "Get riddle":
                         waitingForAnAnswer = true;
                         questions.getQuestion();
                         answer = questions.getAnswer();
                         sendMsg(msg, questions.getNewQuestion());
                         break;
-                    case "Stop riddle":
+                    case "Stop":
                         waitingForAnAnswer = false;
                         sendMsg(msg, "You didn't get riddle");
                         break;
@@ -75,7 +83,7 @@ public class Bot extends TelegramLongPollingBot {
             } else {
                 // Ветка, если пользователь хочет модифицировать текст
                 if (!prevCommand.isEmpty()) {
-                    switch (prevCommand){
+                    switch (prevCommand) {
                         case "Divide":
                             divideTextIntoParagraphs(text);
                             break;
@@ -91,9 +99,10 @@ public class Bot extends TelegramLongPollingBot {
                 }
                 // Если отгадывает загадку
                 else {
-                    if (text.equals("Stop riddle")) {
+                    if (text.equals("Stop")) {
                         waitingForAnAnswer = false;
                         sendMsg(msg, "You stop riddle");
+                        sendMsg(msg, "Answer: " + answer);
                     } else if (text.equals("Get riddle")) {
                         sendMsg(msg, "You already have a riddle");
                     } else {
@@ -105,47 +114,6 @@ public class Bot extends TelegramLongPollingBot {
                 }
             }
         }
-    }
-
-    //метод для создания пользовательского меню
-    private void createKeyboard() {
-        newMsg.enableMarkdown(true);
-
-        // Создаем клавиуатуру
-        ReplyKeyboardMarkup replyKeyboardMarkup = new ReplyKeyboardMarkup();
-        newMsg.setReplyMarkup(replyKeyboardMarkup);
-        replyKeyboardMarkup.setSelective(true);
-        replyKeyboardMarkup.setResizeKeyboard(true);
-        replyKeyboardMarkup.setOneTimeKeyboard(false);
-
-        // Создаем список строк клавиатуры
-        List<KeyboardRow> keyboard = new ArrayList<>();
-
-        // Первая строчка клавиатуры
-        KeyboardRow keyboardFirstRow1 = new KeyboardRow();
-        // Добавляем кнопки в первую строчку клавиатуры
-        keyboardFirstRow1.add("Divide into paragraphs");
-        keyboardFirstRow1.add("Italic");
-
-        // Вторая строчка клавиатуры
-        KeyboardRow keyboardFirstRow2 = new KeyboardRow();
-        // Добавляем кнопки во вторую строчку клавиатуры
-        keyboardFirstRow2.add("Bold");
-        keyboardFirstRow2.add("About bot");
-
-        // Третья строчка клавиатуры
-        KeyboardRow keyboardFirstRow3 = new KeyboardRow();
-        // Добавляем кнопки в третью строчку клавиатуры
-        keyboardFirstRow3.add("Get riddle");
-        keyboardFirstRow3.add("Stop riddle");
-
-        // Добавляем все строчки клавиатуры в список
-        keyboard.add(keyboardFirstRow1);
-        keyboard.add(keyboardFirstRow2);
-        keyboard.add(keyboardFirstRow3);
-
-        // Устанваливаем этот список нашей клавиатуре
-        replyKeyboardMarkup.setKeyboard(keyboard);
     }
 
     //Метод для вывода информации о боте
