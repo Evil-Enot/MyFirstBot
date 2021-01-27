@@ -31,32 +31,8 @@ public class Questions {
         try {
             FileInputStream fileInputStream = new FileInputStream("src/main/resources/questions.properties");
             prop.load(fileInputStream);
-            switch (number) {
-                case 0:
-                    newQuestion = prop.getProperty("1.question");
-                    answer = prop.getProperty("1.answer");
-                    break;
-                case 1:
-                    newQuestion = prop.getProperty("2.question");
-                    answer = prop.getProperty("2.answer");
-                    break;
-                case 2:
-                    newQuestion = prop.getProperty("3.question");
-                    answer = prop.getProperty("3.answer");
-                    break;
-                case 3:
-                    newQuestion = prop.getProperty("4.question");
-                    answer = prop.getProperty("4.answer");
-                    break;
-                case 4:
-                    newQuestion = prop.getProperty("5.question");
-                    answer = prop.getProperty("5.answer");
-                    break;
-                case 5:
-                    newQuestion = prop.getProperty("6.question");
-                    answer = prop.getProperty("6.answer");
-                    break;
-            }
+            newQuestion = prop.getProperty((number + 1) + ".question");
+            answer = prop.getProperty((number + 1) + ".answer");
         } catch (IOException e) {
             e.printStackTrace();
         }
